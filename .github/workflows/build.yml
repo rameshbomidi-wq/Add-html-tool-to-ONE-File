@@ -12,7 +12,7 @@ jobs:
       - name: Generate project
         run: |
           set -e
-          mkdir -p proj/app/src/main/assets proj/app/src/main/java/com/ramesh/tools
+          mkdir -p proj/app/src/main/assets proj/app/src/main/res/mipmap-xxxhdpi proj/app/src/main/java/com/ramesh/tools
           cat > proj/settings.gradle <<'EOF_0'
           pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
           dependencyResolutionManagement { repositories { google(); mavenCentral() } }
@@ -47,6 +47,8 @@ jobs:
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
               <uses-permission android:name="android.permission.INTERNET" />
               <application
+                  android:icon="@mipmap/ic_launcher"
+                  android:roundIcon="@mipmap/ic_launcher"
                   android:label="RAMESH టూల్స్"
                   android:usesCleartextTraffic="false"
                   android:theme="@android:style/Theme.Material.Light.NoActionBar">
@@ -208,6 +210,48 @@ jobs:
               @Override protected void onSaveInstanceState(Bundle o) { super.onSaveInstanceState(o); web.saveState(o); }
           }
           EOF_5
+          echo -n 'iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAMAAABlApw1AAAAflBMVEUrW10wcqDZ3eAns2AhNEczjMkygrqRm6ROXWwlM1U7PT0r' >> /tmp/icon.b64
+          echo -n 'PU8rPVBbW1sMYGV6hZEsQFFrd4S9w8i1u8ItQFEUJzsA//8rPU8zl9r+/v4AAAAuQVQ0neMnrGAuVnUvZ5AAAAAAAAAAAAAAAAAA' >> /tmp/icon.b64
+          echo -n 'AAAAAAAAAAAAAAAAAAAAAAAPhUXmAAAAIHRSTlP+////8f////8dBFygAgr/Wf///5v/Af7//wD+/////5/e63UAAAsJSURBVHja' >> /tmp/icon.b64
+          echo -n '1V1tY6ssD46dutra7uWc+9EZD/7/f/mItpuAQALUunzYh21qLvNKwAQ6O1Wnavx5rc7nOs+bjSnP6/p8lQx0p6uDSbD+5XqRGEbe' >> /tmp/icon.b64
+          echo -n 'G5S0NYD5ofkIQvJyZQOQV1TvdfME1jUYTT5huLAAVKPoKsl9swMauajfb++UCODUded6H9zfMeTvFiHAqvZUu2L/BuG8CgFWXr9U' >> /tmp/icon.b64
+          echo -n 'nmZ3hFhXKwjAfP8V7JD9GcLZtAQw1Ofc7JR/CaE+SQO1A7hI7W92TJhXGgLQ+Idd8z8iaM4qAlDNF3fOv4SgIgDl/f8C/nUEsHQ/' >> /tmp/icon.b64
+          echo -n 'v4L/kZYI4Le9f10GPwCqHFPaGuVX4fQT0uDbgJP7T0S4UXLRjt5UA3DqzskegiCGISuLtmhvVBRFmWWDSOejsb4r0QygGg0gyY1h' >> /tmp/icon.b64
+          echo -n '4ryfqF3Q/TflCAOTmsEM4HKNMwC8MT/x3jpI/rkYQSSAcF1I4BJvAGLwMr9AMYIQ8Up0uQMYI0Dcy4eJ+5ZBI9ZYDKMSXW4A4gSA' >> /tmp/icon.b64
+          echo -n 'Q8nk/htEMWCUJ7rOAC4xHgiyMO7vupRBpB1DlAAk+20U9W0pgpW3miRwCXOhmIL9WQyhECYRQHAMxiTs3yBASKqB+WwD1zDTdbKv' >> /tmp/icon.b64
+          echo -n 'hjIzsBmKlAVpQdVdISyJEEXvilUy4g5CiFsuJG65hQNG3w58IciEAq4BGoRZ7whRtpxH5kiZPWBMesS1Q2kD/CBmUX7pFBeZDq4n' >> /tmp/icon.b64
+          echo -n '02PCYcEQIITRjIGpQWh5/ZL7G/Pe+6HIilUMUgjI1CHgatCq9o/enGeFI4Z29T6C64eg4+Wha85nlD2wg4hMoFbE0Gc8NaqgYj12' >> /tmp/icon.b64
+          echo -n 'RX3CMxrMShNCXyIDAZ6BbgLjjct+nf2wSCgV0oTQFwxDwJoOABsw1H9yHHHL9WzlpoJ8yxEA1YaxEbr6z/EzeoVompU0BKoVA9GG' >> /tmp/icon.b64
+          echo -n 'Jf+GrEWaYgkYltUP9ItpANAw36DYb7MFQwgFGQE0gfwX0CQkIzqSZQBE/enj3DVBCIEIIET/Z+eTmHQfMb4jTANg9J8PVR9blOlJ' >> /tmp/icon.b64
+          echo -n '3pQkAdVV82JlTJwXiVSo1PhvHrYNqCLo2zQS0O6aNQ8k1ZT7Ih4A6vd8KP8N/2ngdw5b8m8gGKIloBjw4/nXJd5CJADFAKT9Pp7U' >> /tmp/icon.b64
+          echo -n 'RxZxAJ7Av8ywGUrkBoCqT9hqF1Px272IAKB6UNjqGAgWdCUCcgo3ynKzfWTRkh8M5BeRNZuR7oogUIWWd6EExUe5Iue7A6IFt7At' >> /tmp/icon.b64
+          echo -n 'AGyJdgzElzBsfY5LEMVvBwDt8xSIoURAWwWL7QEg7QUCSQDZ9gcBVU9kFwGQYthzDhIt8ki7CIAigOEp/Kt2LJgAlgIomifRgglr' >> /tmp/icon.b64
+          echo -n 'IgkEC6IIAJ2UQAS2QAT+IJwqCQ0AshRBxgKwSGgpMQyPPpLM5w23niH8ngS8JkxxQXj48tHh8Pn6cWxy3lcVpVcE4NMgmgX4Adxg' >> /tmp/icon.b64
+          echo -n 'vB5ZUsgCASxX8pASwEivx5yxheRVBfBoEG0dzAEwQmCUJr0iAJ8GZekBfB2OZATQhgBYahA+AMDXFx1B6eEFvKjxEQCoCJSUbjWd' >> /tmp/icon.b64
+          echo -n 'gIBrUgA4hOkQkiSQcTUoAMDXK/WIw48+r6ak4L6EWItTABxWKMIMBrdLB7fQhgAAn/+t5Rqvh0ARCLdCgxuyCJFAs5aM5s3HIcgK' >> /tmp/icon.b64
+          echo -n '0O1IwWkC1ERUB7CWijb5UUXwQdSh0qnR4LyAWo3zA5D/lB+DdGhw+hRwFRTJa0kSgBHB6xLAZ8M2ghUrBqcNi7QAGkUEh4BIIAgA' >> /tmp/icon.b64
+          echo -n 'RM+vJ9IAjP8XZMVOlQCmysUBaA4hwdhplOBwQvQtpccCcHLkBJClBoABAJa52UoyAS6BkUvSYTYQsKgxAxO4MqHEADQvRE7nhMsq' >> /tmp/icon.b64
+          echo -n 'wWXzokkcB/4EAQBXeWtDAHokJq/KeAAgZFeAAAAxV1cNZBNQ0jnBAgChANaqo3ou90Y+tO1UigcA+PwvN0guCLQ1JaOoujGAw6tJ' >> /tmp/icon.b64
+          echo -n '5prsg1Hd2hhA2iXxTgEwFGiXAA6sc4/hAMSDAPzhndvkudH4QOYvsTP3ObaOxD72kfv1OA9AfDLn4v7PG+bsTXPnGvEB6bTT+eQB' >> /tmp/icon.b64
+          echo -n 'e/6Cl05HL2ic7p/PP3tBE7+kfFPoNXBj4AcAc0k58AtzRm1UyYMOwREsbFGfoqyi5KHH4BwirKySurCl1eP4SsQtbGGbvLQYp0Tc' >> /tmp/icon.b64
+          echo -n '0mLy4i42H1FKxC3uKlWMJBLQFvNcJcq45fWBb8W+NfFRC2cYaMO0DQ4RucVk8qfb8RtHiTzsABtyWFXiELTHSlCIB2yzrgDQg8Ef' >> /tmp/icon.b64
+          echo -n 'hghK7jZr9Eb3mgR0Jfqg11Q8hyUecNTAUtgKUiL0HjzxHfYoMI0NYP4WFgwyj08Ez0U0HSLVRg8hwcB7dAk8wTvgvJBFhYxgwPVB' >> /tmp/icon.b64
+          echo -n '6z4dPLEj4MiZRQK6HdOUyMsJ+BSPf+jPvj/AVyLhPbsL3gSwwEQAdDs+8EzY8iYtClLwrIC6xXRgKhHh/Cr4vW+ZDsCRdWQII44e' >> /tmp/icon.b64
+          echo -n 'Y8tal6lrYitbuh1/5nQB2LggHL8niACp2bJmx54qS0b4AoL0AYTXCnC5mfHhUoqjsu/xRk2k7TyAPwmkLMyU7SSnWmtbT9QswuoL' >> /tmp/icon.b64
+          echo -n 'gbKU9tcYyZ87ML6M0DjgAlC/id34Oz7dlTuCEdBeQLY9/wNNBaAhiWD7D5mUL3Id2QAQb7H5p2QFUQGA6AW2VSLtMz5XIALacnTb' >> /tmp/icon.b64
+          echo -n '71n1b8lFGADtu+pebIiA3qcHiCUNmxl8d/cOJQx7LhEAtJ62EvASTe7qrNf6gO6M12718vIvkl7+GS944DQj8IXY0okA/sXTi9qu' >> /tmp/icon.b64
+          echo -n 'wmiugnEAoHW5IoyXwD9Vh/R+ZF7X4W/P42yXk9oG9H5k8e15jAZPOoJocvLvX0sR0syS2bIoKoC13CZblDZthattFEaS3elN530w' >> /tmp/icon.b64
+          echo -n 'AQCjzVz2qDZnQ0CrPFKjPK1RYfGIRnOoNUaaGkamapSnd7CbGnWm5t9o9EczNuJacSi0jqBDajVaabWYEoDZjDJ7cLNL6vqD2vHV' >> /tmp/icon.b64
+          echo -n 'fEIr0gnBaGZNXz+RARgIEgrBaPjKWP9BHfJ1eLq2o7jWS5zesBZzBgCz7XEKdySyPqJlMKfv9Frj5rbv44axrEzB6FtG/WAEwGpd' >> /tmp/icon.b64
+          echo -n 'jmbn+FAIuM4+q2321LqcM8XL0ny9n1vfs4+DrjXA57aTrdjt+1fb38vhA6x3b+l9z811MT8BewQHrI7f6NuS3sMfLVMguOMH5gEK' >> /tmp/icon.b64
+          echo -n 'FVt3h94yA6L4mWBh/xZOWEcfycDCH2Hxv44/ycs2A0UOOSntc9PcU0RY3ufbBLrAMS72KTTTxLEyGzIhR9nNNA1yuc1xsV4WENfl' >> /tmp/icon.b64
+          echo -n 'SC+4hg3Sgcw1Gec+OKeYaPEL6wVlSGYlZxlB2CypOQNINMpoDOhBtW85qHUaJvUemJRlaSAED/G4DZPqukvwQL54CFFT1eZxXnEj' >> /tmp/icon.b64
+          echo -n 'HUUZMxNLDrYLnoIxj3acZvKdYmYiBs+Eu8fvcAFcq++hgnFDHTM+hilixD11nkyZaKzjjKGnMs9KPKxp0GUx2rRqokmOiPKDmCdr' >> /tmp/icon.b64
+          echo -n 'ZvEb51h1CwCXRKNZQWSlJWr9zDZNsuv/PZwVkg/HnTKe8if+3mNymXK67KhAV3W87+WUpy1UzRnQTLa9vIhSwLXTAaSaj+tbyaS5' >> /tmp/icon.b64
+          echo -n '09kYsLwJgoT8myOuZUD+hfwvx7ynnBK9Gf9LAL8Egcq/AmBCsHMI2Kj8qwDGP1WwawSovX8dgETwd8cI5BpM5V8HIMPDbtUIm/qk' >> /tmp/icon.b64
+          echo -n '828AmALC311CQKjkQHovAInxDLuDIK3XeP3rALrq2p3O+Z4gjLzUVXdPf7wApBp11XuOO8GAmL9fV1+/FcD83+e/z8cgGajfT913' >> /tmp/icon.b64
+          echo -n '8kYFMF9xPdd5g09CMT03r9+rzs6+C4BcI0wWcf5b588AkNcj8xP3FweT/wc5MdS7aTR1fwAAAABJRU5ErkJggg==' >> /tmp/icon.b64
+          base64 -d /tmp/icon.b64 > proj/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
           cp index.html proj/app/src/main/assets/index.html
       - name: Build
         working-directory: proj
