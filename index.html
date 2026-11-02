@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="te">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAMESH టూల్స్</title>
+<style>
+  :root { --sidebar-width: 270px; --blue: #3498db; --dark: #2c3e50; --green: #27ae60; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    font-family: 'Noto Sans Telugu', 'Segoe UI', Arial, sans-serif;
+    display: flex; height: 100vh; height: 100dvh; overflow: hidden; background: #1a1a1a;
+  }
+
+  /* సైడ్ బార్ */
+  .sidebar {
+    width: var(--sidebar-width); flex-shrink: 0; background: var(--dark); color: #fff;
+    display: flex; flex-direction: column; transition: margin-left .3s, transform .3s; z-index: 100;
+  }
+  .sidebar.hidden { margin-left: calc(-1 * var(--sidebar-width)); }
+  .sidebar h2 { text-align: center; font-size: 1.1rem; padding: 16px 10px; background: #1a252f; margin: 0; }
+
+  .add-btn {
+    margin: 10px 10px 0; padding: 11px; border: none; border-radius: 8px;
+    background: var(--green); color: #fff; font-size: 15px; font-weight: bold; cursor: pointer;
+  }
+  .add-btn:active { transform: scale(.98); }
+  .row { display: flex; gap: 6px; margin: 8px 10px 0; }
+  .search { flex: 1; padding: 8px 10px; border: none; border-radius: 6px; font-size: 14px; min-width: 0; }
+  .manage-btn {
+    border: none; border-radius: 6px; padding: 0 10px; cursor: pointer;
+    background: #34495e; color: #fff; font-size: 16px;
+  }
+  .manage-btn.on { background: #f39c12; }
+
+  .tool-list { overflow-y: auto; flex-grow: 1; margin-top: 8px; }
+  .tool-item {
+    padding: 11px 12px; border-bottom: 1px solid #34495e; cursor: pointer;
+    display: flex; align-items: center; gap: 8px; color: #bdc3c7; font-size: 14px;
+  }
+  .tool-item .num {
+    min-width: 24px; height: 24px; border-radius: 50%; background: #34495e; color: #fff;
+    font-size: 12px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .tool-item .name { flex: 1; word-break: break-word; }
+  .tool-item:hover, .tool-item.active { background: var(--blue); color: #fff; }
+  .tool-item.active .num { background: #fff; color: var(--blue); }
+  .tools-ctrl { display: none; gap: 2px; flex-shrink: 0; }
+  .managing .tools-ctrl { display: flex; }
+  .tools-ctrl button {
+    border: none; background: rgba(255,255,255,.15); color: #fff; border-radius: 4px;
+    width: 28px; height: 28px; cursor: pointer; font-size: 13px; padding: 0;
+  }
+  .tools-ctrl button:hover { background: rgba(255,255,255,.35); }
+  .empty-menu { padding: 20px 14px; color: #95a5a6; font-size: 13px; text-align: center; }
+
+  .bottom { background: #1a252f; }
+  .backup-row { display: flex; }
+  .backup-row button {
+    flex: 1; border: none; background: transparent; color: #bdc3c7; padding: 9px 4px;
+    font-size: 12px; cursor: pointer; border-bottom: 1px solid #34495e;
+  }
+  .backup-row button:hover { color: #fff; background: #34495e; }
+  .brand {
+    display: block; text-align: center; padding: 11px; color: #f1c40f;
+    font-weight: bold; text-decoration: none; font-size: 14px;
+  }
+  .brand:hover { text-decoration: underline; }
+
+  /* మెయిన్ ఏరియా */
+  .main-content { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .topbar { display: flex; align-items: center; background: var(--blue); color: #fff; }
+  .topbar button {
+    background: transparent; color: #fff; border: none; padding: 10px 14px; cursor: pointer;
+    font-weight: bold; font-size: 15px; white-space: nowrap; font-family: inherit;
+  }
+  .topbar button:hover { background: rgba(0,0,0,.15); }
+  .topbar .title {
+    flex: 1; text-align: center; font-size: 14px; overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap; padding: 0 6px;
+  }
+  #fullBtn { visibility: hidden; }
+
+  .frame-wrap { flex: 1; position: relative; background: #fff; }
+  #toolFrame { position: absolute; inset: 0; width: 100%; height: 100%; border: none; background: #fff; }
+  #welcome {
+    position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; text-align: center; color: #555; padding: 20px; background: #f5f7fa;
+  }
+  #welcome h1 { color: var(--dark); font-size: 1.4rem; margin: 0 0 8px; }
+  #welcome .add-btn { margin-top: 14px; padding: 12px 22px; }
+
+  #toast {
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: #222; color: #fff; padding: 10px 18px; border-radius: 20px; font-size: 14px;
+    opacity: 0; pointer-events: none; transition: opacity .3s; z-index: 300; max-width: 90%; text-align: center;
+  }
+  #toast.show { opacity: 1; }
+
+  /* మొబైల్: మెనూ పైన తేలుతుంది */
+  .backdrop { display: none; }
+  @media (max-width: 700px) {
+    .sidebar { position: fixed; top: 0; bottom: 0; left: 0; margin-left: 0 !important; box-shadow: 2px 0 10px rgba(0,0,0,.4); }
+    .sidebar.hidden { transform: translateX(-100%); box-shadow: none; }
+    .backdrop { display: block; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 90; }
+    .sidebar.hidden + .backdrop { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="sidebar" id="sidebar">
+  <h2 id="menuTitle">నా టూల్స్</h2>
+  <button class="add-btn" onclick="pickFiles()">➕ టూల్ కలపండి</button>
+  <div class="row">
+    <input class="search" id="search" type="search" placeholder="🔍 వెతకండి...">
+    <button class="manage-btn" id="manageBtn" title="పేరు మార్చు / తొలగించు / క్రమం మార్చు" onclick="toggleManage()">⚙️</button>
+  </div>
+  <div class="tool-list" id="menu"></div>
+  <div class="bottom">
+    <div class="backup-row">
+      <button onclick="backup()">💾 బ్యాకప్</button>
+      <button onclick="document.getElementById('restoreInput').click()">📂 రీస్టోర్</button>
+    </div>
+    <a class="brand" href="https://raayeducation.in" target="_blank" rel="noopener">రాయ్ ఎడ్యుకేషన్</a>
+  </div>
+</div>
+<div class="backdrop" onclick="toggleMenu(false)"></div>
+
+<div class="main-content">
+  <div class="topbar">
+    <button onclick="toggleMenu()">☰ మెనూ</button>
+    <span class="title" id="currentTitle">టూల్ ఎంచుకోండి</span>
+    <button id="fullBtn" onclick="goFull()">⛶ పూర్తి స్క్రీన్</button>
+  </div>
+  <div class="frame-wrap" id="frameWrap">
+    <iframe id="toolFrame" src="about:blank"></iframe>
+    <div id="welcome">
+      <h1>🙏 నమస్కారం!</h1>
+      <p id="welcomeMsg">మెనూ నుండి ఒక టూల్ ఎంచుకోండి.</p>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="fileInput" accept=".html,.htm,text/html" multiple hidden>
+<input type="file" id="updateInput" accept=".html,.htm,text/html" hidden>
+<input type="file" id="restoreInput" accept=".json,application/json" hidden>
+<div id="toast"></div>
+
+<script>
+/* ================= IndexedDB (ఫోన్‌లోనే టూల్స్ సేవ్) ================= */
+const DB_NAME = 'ramesh_tools_menu', STORE = 'tools';
+let db;
+function openDB() {
+  return new Promise((res, rej) => {
+    const r = indexedDB.open(DB_NAME, 1);
+    r.onupgradeneeded = () => r.result.createObjectStore(STORE, { keyPath: 'id' });
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+  });
+}
+function tx(mode, fn) {
+  return new Promise((res, rej) => {
+    const t = db.transaction(STORE, mode);
+    const out = fn(t.objectStore(STORE));
+    t.oncomplete = () => res(out && out.result !== undefined ? out.result : undefined);
+    t.onerror = () => rej(t.error);
+  });
+}
+const dbAll = () => tx('readonly', s => s.getAll());
+const dbPut = rec => tx('readwrite', s => s.put(rec));
+const dbDel = id => tx('readwrite', s => s.delete(id));
+
+/* ================= స్థితి ================= */
+let tools = [];          // [{id, name, file, html, order, added}]
+let currentId = null;
+let currentUrl = null;
+let updateTargetId = null;
+
+const $ = id => document.getElementById(id);
+const menu = $('menu'), frame = $('toolFrame'), welcome = $('welcome'), sidebar = $('sidebar');
+const isMobile = () => window.innerWidth <= 700;
+
+function toast(msg) {
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function niceName(fileName) {
+  return fileName.replace(/\.(html?|HTML?)$/, '').replace(/[_\-]+/g, ' ').trim();
+}
+
+/* ================= మెనూ ================= */
+function renderMenu() {
+  tools.sort((a, b) => a.order - b.order);
+  $('menuTitle').textContent = `నా టూల్స్ (${tools.length})`;
+  menu.innerHTML = '';
+  if (!tools.length) {
+    menu.innerHTML = '<div class="empty-menu">ఇంకా టూల్స్ లేవు.<br>పైన ➕ నొక్కి మీ .html ఫైల్స్ ఎంచుకోండి.</div>';
+  }
+  tools.forEach((t, idx) => {
+    const item = document.createElement('div');
+    item.className = 'tool-item' + (t.id === currentId ? ' active' : '');
+    item.dataset.id = t.id;
+    item.innerHTML = `<span class="num">${idx + 1}</span><span class="name"></span>
+      <span class="tools-ctrl">
+        <button data-act="up" title="పైకి">⬆</button>
+        <button data-act="down" title="కిందికి">⬇</button>
+        <button data-act="rename" title="పేరు మార్చు">✏️</button>
+        <button data-act="update" title="కొత్త వెర్షన్ ఫైల్">🔄</button>
+        <button data-act="delete" title="తొలగించు">🗑</button>
+      </span>`;
+    item.querySelector('.name').textContent = t.name;
+    item.addEventListener('click', e => {
+      const act = e.target.dataset && e.target.dataset.act;
+      if (act) { e.stopPropagation(); doAction(act, t.id); }
+      else openTool(t.id);
+    });
+    menu.appendChild(item);
+  });
+  applySearch();
+  $('welcomeMsg').innerHTML = tools.length
+    ? 'మెనూ నుండి ఒక టూల్ ఎంచుకోండి.'
+    : 'ఇంకా టూల్స్ ఏమీ కలపలేదు.<br><button class="add-btn" onclick="pickFiles()">➕ టూల్ కలపండి</button>';
+}
+
+function applySearch() {
+  const q = $('search').value.trim().toLowerCase();
+  menu.querySelectorAll('.tool-item').forEach(a => {
+    a.style.display = a.querySelector('.name').textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+$('search').addEventListener('input', applySearch);
+
+function toggleMenu(show) {
+  if (typeof show === 'boolean') sidebar.classList.toggle('hidden', !show);
+  else sidebar.classList.toggle('hidden');
+}
+function toggleManage() {
+  sidebar.classList.toggle('managing');
+  $('manageBtn').classList.toggle('on');
+}
+
+/* ================= టూల్ తెరవడం ================= */
+function openTool(id) {
+  const t = tools.find(x => x.id === id);
+  if (!t) return;
+  if (currentUrl) URL.revokeObjectURL(currentUrl);
+  currentUrl = URL.createObjectURL(new Blob([t.html], { type: 'text/html;charset=utf-8' }));
+  frame.src = currentUrl;
+  currentId = id;
+  welcome.style.display = 'none';
+  $('currentTitle').textContent = t.name;
+  $('fullBtn').style.visibility = 'visible';
+  menu.querySelectorAll('.tool-item').forEach(a => a.classList.toggle('active', a.dataset.id === id));
+  try { localStorage.setItem('ramesh_last_tool', id); } catch (e) {}
+  if (isMobile()) toggleMenu(false);
+}
+
+function closeTool() {
+  if (currentUrl) URL.revokeObjectURL(currentUrl);
+  currentUrl = null; currentId = null;
+  frame.src = 'about:blank';
+  welcome.style.display = '';
+  $('currentTitle').textContent = 'టూల్ ఎంచుకోండి';
+  $('fullBtn').style.visibility = 'hidden';
+}
+
+function goFull() {
+  const el = $('frameWrap');
+  const fn = el.requestFullscreen || el.webkitRequestFullscreen;
+  if (fn) fn.call(el);
+  else if (currentUrl) window.open(currentUrl, '_blank');
+}
+
+/* ================= ఫైల్స్ కలపడం ================= */
+function pickFiles() { $('fileInput').click(); }
+
+$('fileInput').addEventListener('change', async e => {
+  const files = [...e.target.files];
+  e.target.value = '';
+  if (!files.length) return;
+  let added = 0, updated = 0, lastId = null;
+  let maxOrder = tools.reduce((m, t) => Math.max(m, t.order), 0);
+  for (const f of files) {
+    const html = await f.text();
+    const existing = tools.find(t => t.file === f.name);
+    if (existing) {               // అదే పేరు ఫైల్ మళ్ళీ ఇస్తే → కొత్త వెర్షన్‌గా మారుతుంది
+      existing.html = html; existing.added = Date.now();
+      await dbPut(existing); updated++; lastId = existing.id;
+    } else {
+      const rec = {
+        id: 't' + Date.now() + Math.random().toString(36).slice(2, 7),
+        name: niceName(f.name), file: f.name, html, order: ++maxOrder, added: Date.now()
+      };
+      await dbPut(rec); tools.push(rec); added++; lastId = rec.id;
+    }
+  }
+  renderMenu();
+  toast(`✅ ${added} కొత్త టూల్స్ కలిపాం` + (updated ? `, ${updated} అప్‌డేట్ అయ్యాయి` : ''));
+  if (lastId) openTool(lastId);
+});
+
+/* ================= నిర్వహణ ================= */
+async function doAction(act, id) {
+  const idx = tools.findIndex(t => t.id === id);
+  const t = tools[idx];
+  if (!t) return;
+  if (act === 'rename') {
+    const n = prompt('కొత్త పేరు:', t.name);
+    if (n && n.trim()) {
+      t.name = n.trim(); await dbPut(t); renderMenu();
+      if (currentId === id) $('currentTitle').textContent = t.name;
+    }
+  } else if (act === 'delete') {
+    if (confirm(`"${t.name}" తొలగించాలా?`)) {
+      await dbDel(id); tools.splice(idx, 1);
+      if (currentId === id) closeTool();
+      renderMenu(); toast('🗑 తొలగించాం');
+    }
+  } else if (act === 'update') {
+    updateTargetId = id; $('updateInput').click();
+  } else if (act === 'up' || act === 'down') {
+    const j = act === 'up' ? idx - 1 : idx + 1;
+    if (j < 0 || j >= tools.length) return;
+    const o = tools[idx].order; tools[idx].order = tools[j].order; tools[j].order = o;
+    await dbPut(tools[idx]); await dbPut(tools[j]); renderMenu();
+  }
+}
+
+$('updateInput').addEventListener('change', async e => {
+  const f = e.target.files[0];
+  e.target.value = '';
+  const t = tools.find(x => x.id === updateTargetId);
+  if (!f || !t) return;
+  t.html = await f.text(); t.file = f.name; t.added = Date.now();
+  await dbPut(t);
+  toast(`🔄 "${t.name}" అప్‌డేట్ అయింది`);
+  if (currentId === t.id) openTool(t.id);
+});
+
+/* ================= బ్యాకప్ / రీస్టోర్ ================= */
+function backup() {
+  if (!tools.length) return toast('బ్యాకప్ చేయడానికి టూల్స్ లేవు');
+  const data = JSON.stringify({ app: 'ramesh_tools_menu', v: 1, tools });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([data], { type: 'application/json' }));
+  a.download = `Ramesh_Tools_Backup_${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  toast('💾 బ్యాకప్ ఫైల్ డౌన్‌లోడ్ అయింది');
+}
+
+$('restoreInput').addEventListener('change', async e => {
+  const f = e.target.files[0];
+  e.target.value = '';
+  if (!f) return;
+  try {
+    const data = JSON.parse(await f.text());
+    if (!data || !Array.isArray(data.tools)) throw new Error();
+    for (const rec of data.tools) {
+      if (!rec.id || typeof rec.html !== 'string') continue;
+      await dbPut(rec);
+      const i = tools.findIndex(t => t.id === rec.id);
+      if (i >= 0) tools[i] = rec; else tools.push(rec);
+    }
+    renderMenu();
+    toast(`📂 ${data.tools.length} టూల్స్ రీస్టోర్ అయ్యాయి`);
+  } catch (err) {
+    toast('❌ ఇది సరైన బ్యాకప్ ఫైల్ కాదు');
+  }
+});
+
+/* ================= ప్రారంభం ================= */
+(async () => {
+  try {
+    db = await openDB();
+    tools = await dbAll();
+    if (navigator.storage && navigator.storage.persist) navigator.storage.persist();
+  } catch (e) {
+    toast('❌ ఈ బ్రౌజర్‌లో స్టోరేజ్ పని చేయడం లేదు');
+  }
+  renderMenu();
+  let last = null;
+  try { last = localStorage.getItem('ramesh_last_tool'); } catch (e) {}
+  if (last && tools.some(t => t.id === last)) openTool(last);
+})();
+</script>
+
+</body>
+</html>
