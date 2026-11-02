@@ -1,0 +1,218 @@
+name: Build APK
+on: [push, workflow_dispatch]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 17 }
+      - uses: gradle/actions/setup-gradle@v4
+        with: { gradle-version: 8.5 }
+      - name: Generate project
+        run: |
+          set -e
+          mkdir -p proj/app/src/main/assets proj/app/src/main/java/com/ramesh/tools
+          cat > proj/settings.gradle <<'EOF_0'
+          pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
+          dependencyResolutionManagement { repositories { google(); mavenCentral() } }
+          rootProject.name = "RameshTools"
+          include ':app'
+          EOF_0
+          cat > proj/build.gradle <<'EOF_1'
+          plugins { id 'com.android.application' version '8.2.2' apply false }
+          EOF_1
+          cat > proj/gradle.properties <<'EOF_2'
+          android.useAndroidX=true
+          org.gradle.jvmargs=-Xmx2g
+          EOF_2
+          cat > proj/app/build.gradle <<'EOF_3'
+          plugins { id 'com.android.application' }
+          android {
+              namespace 'com.ramesh.tools'
+              compileSdk 34
+              defaultConfig {
+                  applicationId "com.ramesh.tools"
+                  minSdk 24
+                  targetSdk 34
+                  versionCode 1
+                  versionName "1.0"
+              }
+              compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+          }
+          dependencies { implementation 'androidx.webkit:webkit:1.10.0' }
+          EOF_3
+          cat > proj/app/src/main/AndroidManifest.xml <<'EOF_4'
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+              <uses-permission android:name="android.permission.INTERNET" />
+              <application
+                  android:label="RAMESH టూల్స్"
+                  android:usesCleartextTraffic="false"
+                  android:theme="@android:style/Theme.Material.Light.NoActionBar">
+                  <activity android:name=".MainActivity" android:exported="true"
+                      android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity>
+              </application>
+          </manifest>
+          EOF_4
+          cat > proj/app/src/main/java/com/ramesh/tools/MainActivity.java <<'EOF_5'
+          package com.ramesh.tools;
+
+          import android.app.Activity;
+          import android.app.AlertDialog;
+          import android.content.ContentValues;
+          import android.content.Intent;
+          import android.net.Uri;
+          import android.os.Build;
+          import android.os.Bundle;
+          import android.os.Environment;
+          import android.provider.MediaStore;
+          import android.util.Base64;
+          import android.webkit.*;
+          import android.widget.EditText;
+          import android.widget.Toast;
+          import androidx.webkit.WebViewAssetLoader;
+
+          import java.io.File;
+          import java.io.FileOutputStream;
+          import java.io.OutputStream;
+
+          public class MainActivity extends Activity {
+              private static final int FILE_REQ = 1;
+              private static final String HOME = "https://appassets.androidplatform.net/assets/index.html";
+              private WebView web;
+              private ValueCallback<Uri[]> fileCb;
+
+              private static final String INJECT =
+                  "(function(){if(window.__dlp)return;window.__dlp=true;"
+                + "function sv(a){fetch(a.href).then(r=>r.blob()).then(b=>{var f=new FileReader();"
+                + "f.onload=function(){AndroidBridge.save(a.download||'file',b.type||'application/octet-stream',f.result.split(',')[1]);};"
+                + "f.readAsDataURL(b);});}"
+                + "var oc=HTMLAnchorElement.prototype.click;"
+                + "HTMLAnchorElement.prototype.click=function(){if(this.download&&this.href.indexOf('blob:')===0){sv(this);return;}return oc.call(this);};"
+                + "document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[download]');"
+                + "if(a&&a.href.indexOf('blob:')===0){e.preventDefault();sv(a);}},true);})();";
+
+              @Override
+              protected void onCreate(Bundle b) {
+                  super.onCreate(b);
+                  web = new WebView(this);
+                  setContentView(web);
+
+                  final WebViewAssetLoader loader = new WebViewAssetLoader.Builder()
+                      .addPathHandler("/assets/", new WebViewAssetLoader.AssetsPathHandler(this)).build();
+
+                  WebSettings s = web.getSettings();
+                  s.setJavaScriptEnabled(true);
+                  s.setDomStorageEnabled(true);
+                  s.setDatabaseEnabled(true);
+                  s.setAllowFileAccess(false);
+                  s.setMediaPlaybackRequiresUserGesture(false);
+                  s.setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE);
+
+                  web.addJavascriptInterface(new Object() {
+                      @JavascriptInterface
+                      public void save(String name, String mime, String base64) { saveFile(name, mime, base64); }
+                  }, "AndroidBridge");
+
+                  web.setWebViewClient(new WebViewClient() {
+                      @Override
+                      public WebResourceResponse shouldInterceptRequest(WebView v, WebResourceRequest r) {
+                          return loader.shouldInterceptRequest(r.getUrl());
+                      }
+                      @Override
+                      public boolean shouldOverrideUrlLoading(WebView v, WebResourceRequest r) {
+                          String u = r.getUrl().toString();
+                          if (u.startsWith("http://") || u.startsWith("https://")) {
+                              if ("appassets.androidplatform.net".equals(r.getUrl().getHost())) return false;
+                              startActivity(new Intent(Intent.ACTION_VIEW, r.getUrl()));
+                              return true;
+                          }
+                          return false;
+                      }
+                      @Override
+                      public void onPageFinished(WebView v, String url) { v.evaluateJavascript(INJECT, null); }
+                  });
+
+                  web.setWebChromeClient(new WebChromeClient() {
+                      @Override
+                      public boolean onJsAlert(WebView v, String url, String msg, final JsResult r) {
+                          new AlertDialog.Builder(MainActivity.this).setMessage(msg).setCancelable(false)
+                              .setPositiveButton("OK", (d, w) -> r.confirm()).show();
+                          return true;
+                      }
+                      @Override
+                      public boolean onJsConfirm(WebView v, String url, String msg, final JsResult r) {
+                          new AlertDialog.Builder(MainActivity.this).setMessage(msg).setCancelable(false)
+                              .setPositiveButton("OK", (d, w) -> r.confirm())
+                              .setNegativeButton("రద్దు", (d, w) -> r.cancel()).show();
+                          return true;
+                      }
+                      @Override
+                      public boolean onJsPrompt(WebView v, String url, String msg, String def, final JsPromptResult r) {
+                          final EditText et = new EditText(MainActivity.this);
+                          et.setText(def);
+                          new AlertDialog.Builder(MainActivity.this).setMessage(msg).setView(et).setCancelable(false)
+                              .setPositiveButton("OK", (d, w) -> r.confirm(et.getText().toString()))
+                              .setNegativeButton("రద్దు", (d, w) -> r.cancel()).show();
+                          return true;
+                      }
+                      @Override
+                      public boolean onShowFileChooser(WebView v, ValueCallback<Uri[]> cb, FileChooserParams p) {
+                          if (fileCb != null) fileCb.onReceiveValue(null);
+                          fileCb = cb;
+                          try { startActivityForResult(p.createIntent(), FILE_REQ); }
+                          catch (Exception e) { fileCb = null; return false; }
+                          return true;
+                      }
+                  });
+
+                  if (b != null) web.restoreState(b); else web.loadUrl(HOME);
+              }
+
+              private void saveFile(String name, String mime, String b64) {
+                  try {
+                      byte[] data = Base64.decode(b64, Base64.DEFAULT);
+                      OutputStream os;
+                      if (Build.VERSION.SDK_INT >= 29) {
+                          ContentValues cv = new ContentValues();
+                          cv.put(MediaStore.Downloads.DISPLAY_NAME, name);
+                          cv.put(MediaStore.Downloads.MIME_TYPE, mime);
+                          cv.put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
+                          Uri u = getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, cv);
+                          os = getContentResolver().openOutputStream(u);
+                      } else {
+                          File dir = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+                          os = new FileOutputStream(new File(dir, name));
+                      }
+                      os.write(data); os.close();
+                      runOnUiThread(() -> Toast.makeText(this, "సేవ్ అయింది: Downloads/" + name, Toast.LENGTH_LONG).show());
+                  } catch (Exception e) {
+                      runOnUiThread(() -> Toast.makeText(this, "సేవ్ విఫలమైంది: " + e.getMessage(), Toast.LENGTH_LONG).show());
+                  }
+              }
+
+              @Override
+              protected void onActivityResult(int req, int res, Intent data) {
+                  if (req == FILE_REQ && fileCb != null) {
+                      fileCb.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(res, data));
+                      fileCb = null;
+                  }
+              }
+
+              @Override protected void onSaveInstanceState(Bundle o) { super.onSaveInstanceState(o); web.saveState(o); }
+          }
+          EOF_5
+          cp index.html proj/app/src/main/assets/index.html
+      - name: Build
+        working-directory: proj
+        run: gradle assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: RameshTools-APK
+          path: proj/app/build/outputs/apk/debug/app-debug.apk
